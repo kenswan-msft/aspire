@@ -18,6 +18,7 @@
     <AspireProjectOrPackageReference Include="Aspire.Hosting.RabbitMQ" />
     <AspireProjectOrPackageReference Include="Aspire.Hosting.Redis" />
     <AspireProjectOrPackageReference Include="Aspire.Hosting.PostgreSQL" />
+    <AspireProjectOrPackageReference Include="Aspire.Hosting.DevTunnels" />
 
     <ProjectReference Include="..\ApiGateway\ApiGateway.csproj" />
     <ProjectReference Include="..\BasketService\BasketService.csproj" />
