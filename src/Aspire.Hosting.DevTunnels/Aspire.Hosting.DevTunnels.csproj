@@ -5,6 +5,7 @@
     <IsPackable>true</IsPackable>
     <PackageTags>aspire integration hosting devtunnel</PackageTags>
     <Description>Microsoft DevTunnel support for .NET Aspire.</Description>
+    <EnablePackageValidation>false</EnablePackageValidation>
   </PropertyGroup>
 
   <ItemGroup>
