@@ -5,7 +5,7 @@ using Aspire.Hosting.ApplicationModel;
 
 namespace Aspire.Hosting.DevTunnels;
 
-internal class DevTunnelResource(string name) : ExecutableResource(name, "devtunnel", "./")
+internal class DevTunnelResource(string name) : ExecutableResource(name, "devtunnel", "")
 {
     /// <summary>
     /// Reports DevTunnel resource initialization status.

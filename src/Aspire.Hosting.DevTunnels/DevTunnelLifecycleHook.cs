@@ -19,33 +19,60 @@ internal class DevTunnelLifecycleHook(
                 Parent = resource
             });
 
-            devTunnelResourceBuilder.WithParentRelationship(resource);
+            devTunnelResourceBuilder
+                .WithParentRelationship(resource)
+                .WithExplicitStart()
+                .WithArgs(["host"]);
+
             devTunnelResourceBuilder.WithInitialState(new()
             {
-                ResourceType = "DevTunnel",
-                // State = KnownResourceStates.Hidden,
-                State = KnownResourceStates.NotStarted,
+                ResourceType = "dev tunnel",
+                IsHidden = true,
                 Properties = []
             });
+
+            // TODO: This should be handled by native start. May be missing a hook somewhere from orchestration to enable.
+            devTunnelResourceBuilder
+               .WithCommand("Start", "Start Dev Tunnel", async (context) =>
+               {
+
+                   await notificationService.PublishUpdateAsync(devTunnelResourceBuilder.Resource, snapshot => snapshot with { State = KnownResourceStates.Starting }).ConfigureAwait(false);
+
+                   await Task.Delay(3000).ConfigureAwait(false);
+
+                   await notificationService.PublishUpdateAsync(devTunnelResourceBuilder.Resource, snapshot => snapshot with { State = KnownResourceStates.Running }).ConfigureAwait(false);
+
+                   //await notificationService.PublishUpdateAsync(resource, snapshot =>
+                   //    snapshot with { Urls = snapshot.Urls.Add(new(null, "https://some-dev-tunnel.azure.com:1234", false)) }).ConfigureAwait(false);
+
+                   return new ExecuteCommandResult { Success = true };
+
+               }, commandOptions: new CommandOptions
+               {
+                   IconName = "Play",
+                   UpdateState = (updateState) =>
+                   {
+                       return updateState.ResourceSnapshot.State?.Text == "Running" ? ResourceCommandState.Disabled : ResourceCommandState.Enabled;
+                   },
+               });
 
             appModel.Resources.Add(devTunnelResourceBuilder.Resource);
 
             var resourceBuilder = distributedApplicationBuilder.CreateResourceBuilder(resource);
 
-            resourceBuilder.WithCommand("devtunnel", "Start dev tunnel", async context =>
+            resourceBuilder.WithCommand("show-devtunnel", "Show DevTunnel", async context =>
             {
-                await notificationService.PublishUpdateAsync(devTunnelResourceBuilder.Resource, snapshot => snapshot with { State = KnownResourceStates.Starting }).ConfigureAwait(false);
+                await notificationService.PublishUpdateAsync(devTunnelResourceBuilder.Resource, snapshot => snapshot with { State = KnownResourceStates.NotStarted, IsHidden = false }).ConfigureAwait(false);
 
-                // TODO: Add Start Logic here
-
-                await notificationService.PublishUpdateAsync(devTunnelResourceBuilder.Resource, snapshot => snapshot with { State = KnownResourceStates.Running }).ConfigureAwait(false);
-                await notificationService.PublishUpdateAsync(resource, snapshot =>
-                    snapshot with { Urls = snapshot.Urls.Add(new(null, "https://some-dev-tunnel.azure.com:1234", false)) }).ConfigureAwait(false);
+                // TODO: Fix child resource showing underneath parent resource in UI
 
                 return new() { Success = true };
-            }, new());
+            }, commandOptions: new CommandOptions
+            {
+                IconName = "Apps"
+            });
 
-            // Pump an update to force the UI to refresh
+            // Push an update to force the UI to refresh
             await notificationService.PublishUpdateAsync(resource, snapshot => snapshot).ConfigureAwait(false);
         }
     }
